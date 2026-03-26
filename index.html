@@ -1,660 +1,445 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DAILY INTEL | Penny Stock Discovery</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-primary: #06080c;
-            --bg-secondary: #0c1017;
-            --bg-tertiary: #121820;
-            --bg-card: #0f1318;
-            --border: #1e2530;
-            --text-primary: #e4e8ef;
-            --text-secondary: #8892a2;
-            --text-muted: #505868;
-            --green: #00f593;
-            --green-dim: #00c574;
-            --red: #ff3b5c;
-            --yellow: #ffc233;
-            --blue: #339dff;
-            --purple: #a855f7;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Space Grotesk', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
-        .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 25px 0; border-bottom: 1px solid var(--border); margin-bottom: 25px; flex-wrap: wrap; gap: 20px; }
-        .logo { display: flex; align-items: center; gap: 15px; }
-        .logo-icon { width: 55px; height: 55px; background: linear-gradient(135deg, var(--green), var(--blue)); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 18px; color: var(--bg-primary); box-shadow: 0 0 30px rgba(0, 245, 147, 0.3); }
-        .logo-text h1 { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; letter-spacing: 3px; background: linear-gradient(90deg, var(--green), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .logo-text p { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
-        .header-stats { display: flex; gap: 20px; flex-wrap: wrap; }
-        .header-stat { text-align: center; padding: 10px 18px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; }
-        .header-stat-value { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 600; color: var(--green); }
-        .header-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
-        .controls-section { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; padding: 25px; margin-bottom: 25px; }
-        .controls-title { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
-        .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .control-group label { display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .control-group select { width: 100%; padding: 12px 15px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 10px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
-        .control-group select:focus { border-color: var(--green); outline: none; }
-        .control-group select option { background: var(--bg-tertiary); }
-        .scan-btn-container { display: flex; justify-content: center; }
-        .scan-btn { padding: 16px 60px; background: linear-gradient(135deg, var(--green), var(--green-dim)); border: none; border-radius: 12px; color: var(--bg-primary); font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; cursor: pointer; transition: all 0.3s ease; }
-        .scan-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 40px rgba(0, 245, 147, 0.3); }
-        .scan-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .scan-btn.scanning { animation: pulse 1.5s ease-in-out infinite; }
-        @keyframes pulse { 0%, 100% { box-shadow: 0 0 20px rgba(0, 245, 147, 0.4); } 50% { box-shadow: 0 0 40px rgba(0, 245, 147, 0.7); } }
-        .status-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 25px; display: none; }
-        .status-section.active { display: block; }
-        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .status-text { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--green); }
-        .status-percent { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-secondary); }
-        .progress-bar { height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--blue)); border-radius: 3px; transition: width 0.3s ease; }
-        .status-details { margin-top: 12px; font-size: 11px; color: var(--text-muted); }
-        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
-        .results-title { font-family: 'JetBrains Mono', monospace; font-size: 16px; display: flex; align-items: center; gap: 12px; }
-        .results-count { background: var(--green); color: var(--bg-primary); padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-        .results-meta { font-size: 12px; color: var(--text-muted); }
-        .stock-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; margin-bottom: 20px; overflow: hidden; transition: all 0.3s ease; }
-        .stock-card:hover { border-color: var(--green); box-shadow: 0 20px 60px rgba(0, 245, 147, 0.1); }
-        .stock-card.strong-buy { border-left: 4px solid var(--green); }
-        .stock-card.buy { border-left: 4px solid var(--blue); }
-        .stock-card.hold { border-left: 4px solid var(--yellow); }
-        .stock-card.sell { border-left: 4px solid var(--red); }
-        .card-main { display: grid; grid-template-columns: auto 1fr auto; gap: 25px; align-items: center; padding: 25px; background: var(--bg-secondary); border-bottom: 1px solid var(--border); }
-        @media (max-width: 768px) { .card-main { grid-template-columns: 1fr; text-align: center; } }
-        .rank-section { text-align: center; }
-        .rank-badge { width: 60px; height: 60px; background: linear-gradient(135deg, var(--green), var(--blue)); border-radius: 15px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: var(--bg-primary); margin-bottom: 8px; }
-        .rank-score { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); }
-        .stock-main-info { min-width: 0; }
-        .stock-header { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; flex-wrap: wrap; }
-        .stock-symbol { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; }
-        .stock-name { font-size: 14px; color: var(--text-secondary); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .stock-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .tag { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .tag.sector { background: rgba(168, 85, 247, 0.2); color: var(--purple); border: 1px solid var(--purple); }
-        .tag.exchange { background: rgba(51, 157, 255, 0.2); color: var(--blue); border: 1px solid var(--blue); }
-        .tag.catalyst { background: rgba(0, 245, 147, 0.2); color: var(--green); border: 1px solid var(--green); }
-        .price-action { text-align: right; }
-        .current-price { font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; }
-        .price-change { font-family: 'JetBrains Mono', monospace; font-size: 16px; margin-top: 5px; }
-        .price-change.positive { color: var(--green); }
-        .price-change.negative { color: var(--red); }
-        .volume-info { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
-        .card-body { padding: 25px; }
-        .data-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .data-section { background: var(--bg-tertiary); border-radius: 14px; padding: 20px; }
-        .section-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-        .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-        .trading-signal { background: var(--bg-primary); border-radius: 12px; padding: 20px; text-align: center; }
-        .signal-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .signal-action { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700; margin-bottom: 15px; }
-        .signal-action.strong-buy { color: var(--green); }
-        .signal-action.buy { color: var(--blue); }
-        .signal-action.hold { color: var(--yellow); }
-        .signal-action.sell { color: var(--red); }
-        .price-targets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .target-box { background: var(--bg-tertiary); border-radius: 8px; padding: 12px 8px; }
-        .target-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-        .target-value { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; margin-top: 4px; }
-        .target-value.entry { color: var(--blue); }
-        .target-value.target { color: var(--green); }
-        .target-value.stop { color: var(--red); }
-        .potential-gain { margin-top: 15px; padding: 10px; background: rgba(0, 245, 147, 0.1); border-radius: 8px; }
-        .potential-label { font-size: 10px; color: var(--text-muted); }
-        .potential-value { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--green); }
-        .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .metric-item { background: var(--bg-primary); border-radius: 8px; padding: 12px; }
-        .metric-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-        .metric-value { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; margin-top: 4px; }
-        .metric-value.positive { color: var(--green); }
-        .metric-value.negative { color: var(--red); }
-        .news-list { display: flex; flex-direction: column; gap: 12px; }
-        .news-item { background: var(--bg-primary); border-radius: 10px; padding: 14px; }
-        .news-item a { color: var(--text-primary); text-decoration: none; font-size: 13px; line-height: 1.4; display: block; }
-        .news-item a:hover { color: var(--green); }
-        .news-meta { display: flex; justify-content: space-between; margin-top: 8px; font-size: 10px; color: var(--text-muted); }
-        .news-sentiment { padding: 2px 8px; border-radius: 4px; font-weight: 600; }
-        .news-sentiment.positive { background: rgba(0, 245, 147, 0.2); color: var(--green); }
-        .news-sentiment.negative { background: rgba(255, 59, 92, 0.2); color: var(--red); }
-        .news-sentiment.neutral { background: rgba(255, 194, 51, 0.2); color: var(--yellow); }
-        .catalyst-list { display: flex; flex-direction: column; gap: 10px; }
-        .catalyst-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px; background: var(--bg-primary); border-radius: 8px; }
-        .catalyst-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-        .catalyst-icon.bullish { background: rgba(0, 245, 147, 0.2); }
-        .catalyst-icon.bearish { background: rgba(255, 59, 92, 0.2); }
-        .catalyst-icon.neutral { background: rgba(255, 194, 51, 0.2); }
-        .catalyst-content { flex: 1; min-width: 0; }
-        .catalyst-title { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
-        .catalyst-desc { font-size: 11px; color: var(--text-secondary); }
-        .broker-section { background: var(--bg-primary); border-radius: 10px; padding: 15px; margin-top: 15px; }
-        .broker-title { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
-        .broker-list { display: flex; flex-wrap: wrap; gap: 8px; }
-        .broker-badge { padding: 6px 12px; background: var(--bg-tertiary); border-radius: 6px; font-size: 11px; color: var(--text-secondary); }
-        .analysis-summary { background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary)); border-radius: 14px; padding: 20px; margin-top: 20px; border: 1px solid var(--border); }
-        .analysis-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--green); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-        .analysis-text { font-size: 14px; line-height: 1.7; color: var(--text-secondary); }
-        .analysis-text strong { color: var(--text-primary); }
-        .empty-state { text-align: center; padding: 80px 30px; background: var(--bg-card); border: 1px dashed var(--border); border-radius: 20px; }
-        .empty-icon { font-size: 60px; margin-bottom: 20px; }
-        .empty-title { font-family: 'JetBrains Mono', monospace; font-size: 20px; margin-bottom: 10px; }
-        .empty-text { color: var(--text-secondary); font-size: 14px; max-width: 400px; margin: 0 auto; }
-        .footer { margin-top: 50px; padding: 30px 0; border-top: 1px solid var(--border); text-align: center; }
-        .footer-text { font-size: 12px; color: var(--text-muted); }
-        .disclaimer { margin-top: 15px; padding: 15px; background: rgba(255, 59, 92, 0.1); border: 1px solid rgba(255, 59, 92, 0.3); border-radius: 10px; font-size: 11px; color: var(--red); max-width: 600px; margin-left: auto; margin-right: auto; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Is This Worth It?</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121933;
+      --panel-2: #182347;
+      --text: #f4f7ff;
+      --muted: #9ca9cc;
+      --line: #2a3768;
+      --accent: #6ee7b7;
+      --accent-2: #60a5fa;
+      --danger: #fb7185;
+      --warn: #f59e0b;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(circle at 20% 10%, #1a2550 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .app { max-width: 920px; margin: 0 auto; padding: 28px 18px 70px; }
+    .card {
+      background: rgba(18,25,51,.88);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 22px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    h1,h2,h3,p { margin: 0; }
+    .hero h1 { font-size: clamp(1.8rem, 3.4vw, 2.5rem); margin-bottom: 12px; }
+    .hero p { color: var(--muted); margin-bottom: 24px; font-size: 1.04rem; }
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      font-weight: 700;
+      padding: 12px 18px;
+      cursor: pointer;
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+      color: #081327;
+    }
+    .btn.ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+    .section { margin-top: 18px; }
+    .hidden { display: none !important; }
+    .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: 10px; margin-top: 12px; }
+    .chip {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 14px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+    }
+    .chip.active { border-color: var(--accent); color: var(--accent); }
+    form { display: grid; gap: 12px; margin-top: 14px; }
+    label { font-size: .9rem; color: var(--muted); display: block; margin-bottom: 5px; }
+    input, select, textarea {
+      width: 100%;
+      background: #0f1734;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: inherit;
+    }
+    textarea { min-height: 84px; resize: vertical; }
+    .grid-2 { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); }
+    .processing-list { margin-top: 16px; display: grid; gap: 10px; }
+    .processing-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--muted);
+      background: #0f1734;
+    }
+    .processing-item.active { color: var(--accent); border-color: var(--accent); }
+    .verdict {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--accent-2);
+      border-radius: 12px;
+      padding: 18px;
+      background: #0f1734;
+    }
+    .verdict strong { font-size: 1.45rem; display: block; margin-bottom: 8px; }
+    .breakdown { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 8px; margin-top: 10px; }
+    .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+    .stat .k { color: var(--muted); font-size: .82rem; }
+    .stat .v { font-weight: 700; margin-top: 4px; text-transform: capitalize; }
+    .danger { color: var(--danger); }
+    .success { color: var(--accent); }
+    .warn { color: var(--warn); }
+    .muted { color: var(--muted); }
+    .top-row { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <div class="logo">
-                <div class="logo-icon">DI</div>
-                <div class="logo-text">
-                    <h1>DAILY INTEL</h1>
-                    <p>Penny Stock Discovery</p>
-                </div>
-            </div>
-            <div class="header-stats">
-                <div class="header-stat">
-                    <div class="header-stat-value" id="stocksScanned">0</div>
-                    <div class="header-stat-label">Scanned</div>
-                </div>
-                <div class="header-stat">
-                    <div class="header-stat-value" id="opportunitiesFound">0</div>
-                    <div class="header-stat-label">Found</div>
-                </div>
-                <div class="header-stat">
-                    <div class="header-stat-value" id="scanDate">--</div>
-                    <div class="header-stat-label">Date</div>
-                </div>
-            </div>
-        </header>
+  <main class="app">
+    <section id="landing" class="card hero">
+      <h1>Before you spend money, check if it’s actually worth it.</h1>
+      <p>Get a decisive verdict with practical logic in under a minute.</p>
+      <button class="btn" id="startBtn">Analyze a deal</button>
+    </section>
 
-        <div class="controls-section">
-            <div class="controls-title">🔍 Scanner Filters</div>
-            <div class="controls-grid">
-                <div class="control-group">
-                    <label>Max Price</label>
-                    <select id="maxPrice">
-                        <option value="1">Under $1</option>
-                        <option value="2">Under $2</option>
-                        <option value="5" selected>Under $5</option>
-                        <option value="10">Under $10</option>
-                        <option value="20">Under $20</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <label>Min Price</label>
-                    <select id="minPrice">
-                        <option value="0">No Minimum</option>
-                        <option value="0.10">Above $0.10</option>
-                        <option value="0.50" selected>Above $0.50</option>
-                        <option value="1">Above $1</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <label>Min Change %</label>
-                    <select id="minChange">
-                        <option value="-100">Any</option>
-                        <option value="0">Positive Only</option>
-                        <option value="3" selected>+3% or more</option>
-                        <option value="5">+5% or more</option>
-                        <option value="10">+10% or more</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <label>Results</label>
-                    <select id="limit">
-                        <option value="5">Top 5</option>
-                        <option value="10" selected>Top 10</option>
-                        <option value="15">Top 15</option>
-                    </select>
-                </div>
-            </div>
-            <div class="scan-btn-container">
-                <button class="scan-btn" id="scanBtn" onclick="runScan()">🚀 Discover Stocks</button>
-            </div>
+    <section id="categoryStep" class="card section hidden">
+      <h2>Choose a category</h2>
+      <p class="muted" style="margin-top:6px;">We tailor the decision logic to your situation.</p>
+      <div class="choices" id="categoryChoices"></div>
+      <div style="margin-top:14px; display:flex; gap:10px;">
+        <button class="btn ghost" data-back="landing">Back</button>
+        <button class="btn" id="toFormBtn" disabled>Continue</button>
+      </div>
+    </section>
+
+    <section id="formStep" class="card section hidden">
+      <div class="top-row">
+        <h2 id="formTitle">Deal details</h2>
+        <button class="btn ghost" data-back="categoryStep">Change category</button>
+      </div>
+      <form id="dealForm"></form>
+    </section>
+
+    <section id="processingStep" class="card section hidden">
+      <h2>Running decision logic</h2>
+      <p class="muted" style="margin-top:6px;">This takes a few seconds.</p>
+      <div class="processing-list" id="processingList"></div>
+    </section>
+
+    <section id="outputStep" class="card section hidden">
+      <div class="top-row">
+        <h2>Decision Output</h2>
+        <button class="btn ghost" id="newAnalysisBtn">New analysis</button>
+      </div>
+      <article class="verdict" id="output"></article>
+      <p class="muted" style="margin-top:14px; font-size:.92rem;">Free tier shows all core decision elements in V1.</p>
+    </section>
+  </main>
+
+  <script>
+    const categories = ["Real Estate", "Car", "Purchase", "Business", "Other"];
+    const stepMessages = [
+      "Checking market logic",
+      "Comparing value vs alternatives",
+      "Stress-testing downside",
+      "Evaluating fit for you"
+    ];
+
+    const state = { category: null };
+
+    const landing = document.getElementById("landing");
+    const categoryStep = document.getElementById("categoryStep");
+    const formStep = document.getElementById("formStep");
+    const processingStep = document.getElementById("processingStep");
+    const outputStep = document.getElementById("outputStep");
+    const categoryChoices = document.getElementById("categoryChoices");
+    const toFormBtn = document.getElementById("toFormBtn");
+    const formTitle = document.getElementById("formTitle");
+    const dealForm = document.getElementById("dealForm");
+    const processingList = document.getElementById("processingList");
+    const outputEl = document.getElementById("output");
+
+    document.getElementById("startBtn").onclick = () => show("categoryStep");
+    document.getElementById("newAnalysisBtn").onclick = () => {
+      state.category = null;
+      toFormBtn.disabled = true;
+      [...categoryChoices.children].forEach(x => x.classList.remove("active"));
+      show("categoryStep");
+    };
+
+    document.querySelectorAll("[data-back]").forEach(btn => {
+      btn.addEventListener("click", () => show(btn.dataset.back));
+    });
+
+    categories.forEach(cat => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.textContent = cat;
+      chip.onclick = () => {
+        state.category = cat;
+        [...categoryChoices.children].forEach(x => x.classList.remove("active"));
+        chip.classList.add("active");
+        toFormBtn.disabled = false;
+      };
+      categoryChoices.appendChild(chip);
+    });
+
+    toFormBtn.onclick = () => {
+      renderForm();
+      show("formStep");
+    };
+
+    function show(id) {
+      [landing, categoryStep, formStep, processingStep, outputStep].forEach(el => el.classList.add("hidden"));
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    function commonFields() {
+      return `
+        <div>
+          <label>Price / cost</label>
+          <input name="price" type="number" min="0" step="0.01" required placeholder="e.g. 25000" />
+        </div>
+        <div>
+          <label>Reason for this decision</label>
+          <textarea name="reason" placeholder="Short reason" required></textarea>
+        </div>
+      `;
+    }
+
+    function renderForm() {
+      formTitle.textContent = `${state.category} input`;
+      let extra = "";
+      if (state.category === "Real Estate") {
+        extra = `
+          <div class="grid-2">
+            <div><label>Location</label><input name="location" placeholder="City / area" required /></div>
+            <div><label>Size (optional)</label><input name="size" placeholder="sqft" /></div>
+            <div><label>Expected monthly rent (optional)</label><input type="number" name="rent" min="0" step="0.01" /></div>
+            <div><label>Your monthly income (optional)</label><input type="number" name="income" min="0" step="0.01" /></div>
+          </div>`;
+      } else if (state.category === "Car") {
+        extra = `
+          <div class="grid-2">
+            <div><label>Model / year</label><input name="model" placeholder="e.g. Civic 2021" required /></div>
+            <div><label>Mileage</label><input type="number" name="mileage" min="0" required /></div>
+          </div>`;
+      } else if (state.category === "Purchase") {
+        extra = `
+          <div class="grid-2">
+            <div><label>Item</label><input name="item" placeholder="What are you buying?" required /></div>
+            <div><label>How often used per month</label><input type="number" name="usage" min="0" required /></div>
+            <div><label>Cheaper alternative price (optional)</label><input type="number" name="altPrice" min="0" step="0.01" /></div>
+          </div>`;
+      } else if (state.category === "Business") {
+        extra = `
+          <div class="grid-2">
+            <div><label>Idea / business type</label><input name="idea" required /></div>
+            <div><label>Expected monthly revenue (optional)</label><input type="number" name="revenue" min="0" step="0.01" /></div>
+            <div><label>Expected monthly fixed costs (optional)</label><input type="number" name="fixedCosts" min="0" step="0.01" /></div>
+            <div><label>Cash runway in months (optional)</label><input type="number" name="runway" min="0" /></div>
+          </div>`;
+      } else {
+        extra = `<div><label>What are you deciding?</label><input name="context" required /></div>`;
+      }
+
+      dealForm.innerHTML = commonFields() + extra + `
+        <div style="display:flex; gap:10px; margin-top:4px;">
+          <button type="button" class="btn ghost" data-back="categoryStep">Back</button>
+          <button type="submit" class="btn">Run analysis</button>
+        </div>`;
+
+      dealForm.querySelector("[data-back]").onclick = () => show("categoryStep");
+      dealForm.onsubmit = runAnalysis;
+    }
+
+    async function runAnalysis(e) {
+      e.preventDefault();
+      const formData = Object.fromEntries(new FormData(dealForm).entries());
+      show("processingStep");
+      processingList.innerHTML = stepMessages.map(msg => `<div class="processing-item">${msg}</div>`).join("");
+
+      const items = [...processingList.children];
+      for (let i = 0; i < items.length; i++) {
+        items[i].classList.add("active");
+        await new Promise(r => setTimeout(r, 600));
+      }
+
+      const result = evaluateDecision(state.category, formData);
+      outputEl.innerHTML = renderOutput(result);
+      show("outputStep");
+    }
+
+    function evaluateDecision(category, data) {
+      const price = Number(data.price || 0);
+      const reason = (data.reason || "").toLowerCase();
+      let score = 50;
+      let risk = "medium";
+      let value = "fair";
+      let liquidity = "moderate";
+      let upside = "moderate";
+      const flags = [];
+
+      const emotional = ["feel", "deserve", "love", "dream", "want", "status", "impulse"].some(k => reason.includes(k));
+      if (emotional) {
+        score -= 8;
+        flags.push("Emotional reasoning is driving the decision.");
+      }
+
+      if (category === "Real Estate") {
+        const rent = Number(data.rent || 0);
+        const income = Number(data.income || 0);
+        if (rent > 0 && price > 0) {
+          const grossYield = (rent * 12 / price) * 100;
+          if (grossYield < 5) {
+            score -= 18;
+            value = "low";
+            upside = "weak";
+            flags.push("Yield is too low for the price.");
+          } else if (grossYield > 8) {
+            score += 12;
+            value = "high";
+            upside = "strong";
+          }
+        }
+        if (income > 0 && price > income * 70) {
+          score -= 12;
+          risk = "high";
+          flags.push("Purchase is heavy relative to your income.");
+        }
+        liquidity = "slow";
+      }
+
+      if (category === "Car") {
+        const mileage = Number(data.mileage || 0);
+        if (mileage > 120000 && price > 12000) {
+          score -= 22;
+          risk = "high";
+          value = "low";
+          flags.push("High mileage with high price.");
+        }
+        if (mileage < 45000 && price < 20000) {
+          score += 10;
+          value = "high";
+        }
+        liquidity = "moderate";
+        upside = "weak";
+      }
+
+      if (category === "Purchase") {
+        const usage = Number(data.usage || 0);
+        const altPrice = Number(data.altPrice || 0);
+        if (usage < 3 && price > 500) {
+          score -= 14;
+          value = "low";
+          flags.push("Low usage does not justify the cost.");
+        }
+        if (altPrice > 0 && price > altPrice * 1.4) {
+          score -= 10;
+          flags.push("You are paying far above a valid alternative.");
+        }
+        liquidity = "easy";
+      }
+
+      if (category === "Business") {
+        const revenue = Number(data.revenue || 0);
+        const fixedCosts = Number(data.fixedCosts || 0);
+        const runway = Number(data.runway || 0);
+        if (revenue > 0 && fixedCosts > 0 && revenue < fixedCosts) {
+          score -= 18;
+          risk = "high";
+          flags.push("Projected revenue does not cover fixed costs.");
+        }
+        if (runway > 0 && runway < 6) {
+          score -= 8;
+          flags.push("Runway is tight for execution risk.");
+        }
+        if (revenue > fixedCosts * 1.5 && runway >= 9) {
+          score += 14;
+          upside = "strong";
+          value = "high";
+        }
+        liquidity = "slow";
+      }
+
+      if (category === "Other") {
+        if (price > 5000) {
+          score -= 6;
+          flags.push("Large spend with limited category-specific validation.");
+        }
+      }
+
+      if (score >= 72) {
+        return finalize("Worth it", value, risk, liquidity, upside, flags, "Move forward, but negotiate and document assumptions before committing.", "High");
+      }
+      if (score >= 58) {
+        return finalize("Only makes sense if X", value, risk, liquidity, upside, flags, "Proceed only if you can improve price by 10-15% or reduce downside exposure.", "Medium");
+      }
+      if (score >= 42) {
+        return finalize("Risky", value === "high" ? "fair" : value, "high", liquidity, upside, flags, "Delay this decision. Validate assumptions with one hard market benchmark first.", "Medium");
+      }
+      if (score >= 30) {
+        return finalize("Overpriced", "low", "high", liquidity, upside === "strong" ? "moderate" : upside, flags, "Reject this version of the deal. Re-enter at a lower price or better terms.", "High");
+      }
+      return finalize("Bad move", "low", "high", liquidity, "weak", flags, "Walk away. Keep cash and find an option with stronger fundamentals.", "High");
+    }
+
+    function finalize(verdict, value, risk, liquidity, upside, flags, smarterMove, confidence) {
+      const why = [];
+      if (value === "low") why.push("The numbers do not justify the asking price.");
+      if (risk === "high") why.push("Downside exposure is high if assumptions fail.");
+      if (!why.length) why.push("Core metrics are acceptable versus typical alternatives.");
+      if (upside === "strong") why.push("Upside is meaningful if execution is disciplined.");
+
+      const whatsOff = flags[0] || "The margin for error is thinner than it looks.";
+      return {
+        verdict,
+        why: why.slice(0, 3).join(" "),
+        breakdown: { value, risk, liquidity, upside },
+        whatsOff,
+        smarterMove,
+        confidence
+      };
+    }
+
+    function renderOutput(result) {
+      return `
+        <p class="muted">1. Verdict</p>
+        <strong>${result.verdict}</strong>
+
+        <p class="muted" style="margin-top:10px;">2. Why</p>
+        <p>${result.why}</p>
+
+        <p class="muted" style="margin-top:12px;">3. Breakdown</p>
+        <div class="breakdown">
+          ${Object.entries(result.breakdown).map(([k,v]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("")}
         </div>
 
-        <div class="status-section" id="statusSection">
-            <div class="status-header">
-                <div class="status-text" id="statusText">Initializing...</div>
-                <div class="status-percent" id="statusPercent">0%</div>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-            </div>
-            <div class="status-details" id="statusDetails"></div>
-        </div>
+        <p class="muted" style="margin-top:12px;">4. What’s Off</p>
+        <p class="danger">${result.whatsOff}</p>
 
-        <div id="resultsArea">
-            <div class="empty-state">
-                <div class="empty-icon">🔭</div>
-                <h3 class="empty-title">Ready to Discover</h3>
-                <p class="empty-text">Hit scan to find new penny stock opportunities.<br><br><strong>⚠️ This app must be deployed to Netlify to work.</strong> It won't work locally or in preview mode.</p>
-            </div>
-        </div>
+        <p class="muted" style="margin-top:12px;">5. Smarter Move</p>
+        <p>${result.smarterMove}</p>
 
-        <footer class="footer">
-            <p class="footer-text">DAILY INTEL — Penny Stock Discovery Engine</p>
-            <div class="disclaimer">⚠️ <strong>DISCLAIMER:</strong> For educational purposes only. Penny stocks are extremely risky. Never invest money you can't afford to lose. Always do your own research.</div>
-        </footer>
-    </div>
-
-    <script>
-        // API calls go through Netlify function (api.mjs)
-        // This only works when deployed to Netlify!
-        
-        async function apiCall(action, symbol) {
-            const url = `/.netlify/functions/api?action=${action}&symbol=${symbol}`;
-            console.log('Fetching:', url);
-            
-            try {
-                const res = await fetch(url);
-                const text = await res.text();
-                console.log(`${symbol}/${action} response:`, res.status, text.substring(0, 100));
-                
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}: ${text}`);
-                }
-                
-                return JSON.parse(text);
-            } catch (err) {
-                console.error(`Failed ${symbol}/${action}:`, err.message);
-                throw err;
-            }
-        }
-
-        // 200+ penny stock universe - randomized each scan
-        const UNIVERSE = [
-            'NIO','LCID','GOEV','NKLA','WKHS','FFIE','MULN','PTRA','EVGO','CHPT','BLNK','PLUG','FCEL','GEVO','CLNE',
-            'MARA','RIOT','CLSK','BITF','HUT','BTBT','CIFR','CORZ','WULF','GREE','APLD',
-            'BBAI','GFAI','AITX','SOUN','IONQ','RGTI','QUBT','BKSY','PL','RCAT','KULR',
-            'DNA','SEEL','TGTX','HIMS','CLOV','AMWL','TALK','EDIT','NTLA','BEAM','CRSP',
-            'SOFI','HOOD','LC','NU','DAVE','OPEN','PSFE','UWMC','AFRM','UPST',
-            'SNDL','TLRY','ACB','CGC','HEXO','VFF','CRON','OGI','GRWG',
-            'AMC','GME','BB','NOK','EXPR','KOSS','SPCE','WISH','BARK',
-            'JOBY','LILM','ACHR','LAZR','MVIS','LIDR','VLDR','OUST','AEVA',
-            'TELL','SWN','RRC','AR','CNX','CTRA','MTDR',
-            'RKLB','ASTR','ASTS','MNTS','LLAP','LUNR','SPIR',
-            'ZIM','GOGL','SBLK','GNK','CTRM','TOPS','SHIP',
-            'BABA','JD','PDD','BIDU','XPEV','LI','BILI','IQ','DIDI','GRAB',
-            'CENN','BOXD','MTTR','VIEW','BIRD','GRPN','PTON','HYMC','DM',
-            'STEM','RUN','NOVA','SPWR','BEEM','OEG','ADN',
-            'PRQR','ABCL','RXRX','SDGR','KRON','PRVB',
-            'PAYO','RPAY','FOUR','GDOT','RELY',
-            'IRDM','VSAT','KTOS','UAVS','EH',
-            'PRPL','LOVE','BGFV','EXPR','ANF','GPS',
-            'REAL','GRND','TREE','QNST',
-            'FRO','SFL','DAC','GSL','CMRE','ESEA',
-            'TAL','EDU','GOTU','TIGR','FUTU','FINV','QFIN',
-            'NILE','EBON','DMGI','BTCS','ARBK','MOGO',
-            'KULR','QBTS','VNET','TME','SE',
-            'DOCS','ACCD','CERT','ABUS',
-            'VERV','BLUE','SGMO',
-            'ROOT','LMND','MNMD',
-            'INDI','DNMR','MVST','QS',
-            'ESTE','REI','TALO','CPE','PDCE','CRK',
-            'VORB','MAXR',
-            'PLCE','ZUMZ','BOOT','HIBB','SCVL','SKX',
-            'HOUS','OPAD','DOOR','HOME',
-            'DSX','NMM','EGLE','PSHG','EDRY',
-            'YSG','LX',
-            'FAZE','BZFD','BODY','RDBX','APRN','HYZN','GOCO','VELO'
-        ];
-
-        let scanned = 0, found = 0, errors = 0;
-
-        async function runScan() {
-            const btn = document.getElementById('scanBtn');
-            const status = document.getElementById('statusSection');
-            const statusText = document.getElementById('statusText');
-            const statusPercent = document.getElementById('statusPercent');
-            const progressFill = document.getElementById('progressFill');
-            const statusDetails = document.getElementById('statusDetails');
-
-            const maxPrice = parseFloat(document.getElementById('maxPrice').value);
-            const minPrice = parseFloat(document.getElementById('minPrice').value);
-            const minChange = parseFloat(document.getElementById('minChange').value);
-            const limit = parseInt(document.getElementById('limit').value);
-
-            btn.disabled = true;
-            btn.classList.add('scanning');
-            btn.textContent = '⏳ Scanning...';
-            status.classList.add('active');
-            document.getElementById('resultsArea').innerHTML = '';
-
-            scanned = 0; found = 0; errors = 0;
-
-            // Shuffle for random discovery each time
-            const shuffled = [...UNIVERSE].sort(() => Math.random() - 0.5);
-            const toScan = shuffled.slice(0, 40); // Reduced to avoid rate limits
-            const results = [];
-
-            for (let i = 0; i < toScan.length; i++) {
-                const sym = toScan[i];
-                const pct = Math.round(((i + 1) / toScan.length) * 100);
-                statusText.textContent = `Analyzing ${sym}...`;
-                statusPercent.textContent = `${pct}%`;
-                progressFill.style.width = `${pct}%`;
-                statusDetails.textContent = `Scanned: ${scanned} | Found: ${found} | Errors: ${errors}`;
-
-                try {
-                    const data = await fetchData(sym);
-                    scanned++;
-                    if (data && data.price >= minPrice && data.price <= maxPrice && data.change >= minChange) {
-                        found++;
-                        results.push(data);
-                        document.getElementById('stocksScanned').textContent = scanned;
-                        document.getElementById('opportunitiesFound').textContent = found;
-                    }
-                } catch (e) { 
-                    scanned++; 
-                    errors++;
-                    console.log(`${sym} error:`, e.message);
-                }
-                statusDetails.textContent = `Scanned: ${scanned} | Found: ${found} | Errors: ${errors}`;
-
-                await sleep(500);
-                if (results.length >= limit * 2) break;
-            }
-
-            results.forEach(s => {
-                s.score = calcScore(s);
-                s.signal = getSignal(s.score);
-                s.targets = calcTargets(s);
-            });
-
-            results.sort((a, b) => b.score - a.score);
-            const top = results.slice(0, limit);
-
-            document.getElementById('stocksScanned').textContent = scanned;
-            document.getElementById('opportunitiesFound').textContent = top.length;
-            document.getElementById('scanDate').textContent = new Date().toLocaleDateString();
-
-            render(top);
-
-            btn.disabled = false;
-            btn.classList.remove('scanning');
-            btn.textContent = '🚀 Discover Stocks';
-            status.classList.remove('active');
-        }
-
-        async function fetchData(sym) {
-            const q = await apiCall('quote', sym);
-            if (!q || !q.c || q.c === 0) throw new Error('No price');
-
-            let p = { name: sym, finnhubIndustry: 'Unknown', marketCapitalization: 0, exchange: 'US' };
-            try {
-                const pd = await apiCall('profile', sym);
-                if (pd && pd.name) p = pd;
-            } catch (e) {}
-
-            let news = [];
-            try {
-                const nd = await apiCall('news', sym);
-                news = Array.isArray(nd) ? nd : [];
-            } catch (e) {}
-
-            let insiders = [];
-            try {
-                const id = await apiCall('insider', sym);
-                insiders = id?.data || [];
-            } catch (e) {}
-
-            return {
-                symbol: sym,
-                name: p.name || sym,
-                sector: p.finnhubIndustry || 'Unknown',
-                exchange: p.exchange || 'US',
-                price: q.c,
-                change: q.dp || 0,
-                changeAmt: q.d || 0,
-                high: q.h || q.c,
-                low: q.l || q.c,
-                open: q.o || q.c,
-                prevClose: q.pc || q.c,
-                marketCap: p.marketCapitalization || 0,
-                news: news.slice(0, 5),
-                insiders: insiders.slice(0, 5)
-            };
-        }
-
-        function calcScore(s) {
-            let sc = 50;
-            if (s.change > 15) sc += 30;
-            else if (s.change > 10) sc += 25;
-            else if (s.change > 5) sc += 18;
-            else if (s.change > 3) sc += 12;
-            else if (s.change > 0) sc += 6;
-            else if (s.change < -10) sc -= 15;
-            else if (s.change < -5) sc -= 8;
-
-            if (s.marketCap > 0 && s.marketCap < 100) sc += 15;
-            else if (s.marketCap < 500) sc += 10;
-            else if (s.marketCap < 2000) sc += 5;
-
-            if (s.news.length >= 5) sc += 15;
-            else if (s.news.length >= 3) sc += 10;
-            else if (s.news.length >= 1) sc += 5;
-
-            const buys = s.insiders.filter(i => i.transactionType === 'P' || (i.change > 0 && i.transactionType !== 'S'));
-            if (buys.length >= 3) sc += 20;
-            else if (buys.length >= 1) sc += 12;
-
-            const vol = ((s.high - s.low) / s.price) * 100;
-            if (vol > 10) sc += 10;
-            else if (vol > 5) sc += 5;
-
-            if (s.high > 0) {
-                const fh = ((s.high - s.price) / s.high) * 100;
-                if (fh < 2) sc += 8;
-                else if (fh < 5) sc += 4;
-            }
-
-            return Math.max(0, Math.min(100, Math.round(sc)));
-        }
-
-        function getSignal(sc) {
-            if (sc >= 85) return { action: 'STRONG BUY', cls: 'strong-buy', reason: 'Multiple bullish signals' };
-            if (sc >= 70) return { action: 'BUY', cls: 'buy', reason: 'Favorable setup' };
-            if (sc >= 50) return { action: 'HOLD', cls: 'hold', reason: 'Wait for confirmation' };
-            return { action: 'AVOID', cls: 'sell', reason: 'Insufficient signals' };
-        }
-
-        function calcTargets(s) {
-            const p = s.price;
-            const vol = Math.max(((s.high - s.low) / p) * 100, 5);
-            const entry = p * 0.98;
-            let mult = 1.1;
-            if (s.score >= 85) mult = 1.25;
-            else if (s.score >= 70) mult = 1.18;
-            else if (s.score >= 55) mult = 1.12;
-            const target = p * mult;
-            const stop = p * Math.max(0.85, 1 - (vol / 100) * 1.5);
-            const gain = ((target - entry) / entry) * 100;
-            const risk = entry - stop;
-            const reward = target - entry;
-            const rr = risk > 0 ? (reward / risk).toFixed(1) : 'N/A';
-            return { entry, target, stop, gain, rr };
-        }
-
-        function getCatalysts(s) {
-            const c = [];
-            if (s.change > 10) c.push({ i: '🚀', t: 'bullish', n: 'Breaking Out', d: `Up ${s.change.toFixed(1)}%` });
-            else if (s.change > 5) c.push({ i: '📈', t: 'bullish', n: 'Strong Momentum', d: `+${s.change.toFixed(1)}%` });
-            const buys = s.insiders.filter(x => x.transactionType === 'P' || (x.change > 0 && x.transactionType !== 'S'));
-            if (buys.length > 0) c.push({ i: '👔', t: 'bullish', n: 'Insider Buying', d: `${buys.length} purchase(s)` });
-            if (s.news.length >= 3) c.push({ i: '📰', t: 'neutral', n: 'High News Volume', d: `${s.news.length} articles` });
-            const txt = s.news.map(n => n.headline.toLowerCase()).join(' ');
-            if (txt.includes('fda') || txt.includes('approval')) c.push({ i: '💊', t: 'bullish', n: 'FDA/Regulatory', d: 'Catalyst detected' });
-            if (txt.includes('contract') || txt.includes('deal') || txt.includes('partnership')) c.push({ i: '🤝', t: 'bullish', n: 'Business Deal', d: 'Partnership/contract' });
-            if (txt.includes('offering') || txt.includes('dilution')) c.push({ i: '⚠️', t: 'bearish', n: 'Dilution Risk', d: 'Offering mentioned' });
-            if (s.marketCap > 0 && s.marketCap < 300) c.push({ i: '💎', t: 'neutral', n: 'Micro Cap', d: 'High potential' });
-            const v = ((s.high - s.low) / s.price) * 100;
-            if (v > 10) c.push({ i: '⚡', t: 'neutral', n: 'High Volatility', d: `${v.toFixed(1)}% range` });
-            if (s.change < -10) c.push({ i: '🔄', t: 'neutral', n: 'Oversold?', d: 'Bounce potential' });
-            return c;
-        }
-
-        function sentiment(h) {
-            const t = h.toLowerCase();
-            const bull = ['surge','soar','jump','gain','buy','upgrade','beat','strong','bullish','growth','profit','deal','approval'];
-            const bear = ['fall','drop','sink','loss','sell','downgrade','miss','weak','bearish','cut','layoff','dilution'];
-            let b = 0, r = 0;
-            bull.forEach(w => { if (t.includes(w)) b++; });
-            bear.forEach(w => { if (t.includes(w)) r++; });
-            if (b > r) return 'positive';
-            if (r > b) return 'negative';
-            return 'neutral';
-        }
-
-        function analysis(s) {
-            let a = `<strong>${s.symbol}</strong> scores ${s.score}/100. `;
-            if (s.signal.cls === 'strong-buy') a += 'Exceptional strength with multiple bullish signals. ';
-            else if (s.signal.cls === 'buy') a += 'Solid opportunity with favorable setup. ';
-            else if (s.signal.cls === 'hold') a += 'Worth watching but needs confirmation. ';
-            else a += 'High risk, insufficient signals. ';
-            if (s.change > 5) a += `Up <strong>${s.change.toFixed(1)}%</strong> today with buying pressure. `;
-            else if (s.change < -5) a += `Down <strong>${Math.abs(s.change).toFixed(1)}%</strong> - potential dip buy. `;
-            const buys = s.insiders.filter(x => x.transactionType === 'P' || (x.change > 0 && x.transactionType !== 'S'));
-            if (buys.length > 0) a += `<strong>Insider buying</strong> detected. `;
-            if (s.news.length >= 3) a += `<strong>${s.news.length} news articles</strong> this week. `;
-            if (s.marketCap > 0 && s.marketCap < 300) a += `<strong>Micro-cap</strong> ($${s.marketCap.toFixed(0)}M) with explosive potential. `;
-            if (s.signal.cls === 'strong-buy' || s.signal.cls === 'buy') {
-                a += `<br><br><strong>Strategy:</strong> Entry ~<strong>$${s.targets.entry.toFixed(2)}</strong>, Target <strong>$${s.targets.target.toFixed(2)}</strong> (+${s.targets.gain.toFixed(0)}%), Stop <strong>$${s.targets.stop.toFixed(2)}</strong>.`;
-            }
-            return a;
-        }
-
-        function fmtCap(c) {
-            if (!c || c === 0) return 'N/A';
-            if (c >= 1000) return `$${(c / 1000).toFixed(1)}B`;
-            return `$${c.toFixed(0)}M`;
-        }
-
-        function timeAgo(ts) {
-            const s = Math.floor((Date.now() / 1000) - ts);
-            if (s < 3600) return `${Math.floor(s / 60)}m ago`;
-            if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-            return `${Math.floor(s / 86400)}d ago`;
-        }
-
-        function render(stocks) {
-            const area = document.getElementById('resultsArea');
-            if (stocks.length === 0) {
-                let msg = 'Try adjusting filters and scan again.';
-                if (errors > scanned / 2) {
-                    msg = `<strong>⚠️ ${errors} API errors detected.</strong><br><br>Make sure you've deployed this to Netlify (not just opened the HTML file locally). The serverless function handles API calls.<br><br>If already deployed, the API may be rate limited - wait a minute and try again.`;
-                }
-                area.innerHTML = `<div class="empty-state"><div class="empty-icon">😢</div><h3 class="empty-title">No Opportunities Found</h3><p class="empty-text">${msg}</p></div>`;
-                return;
-            }
-
-            let html = `<div class="results-header"><div class="results-title">Today's Discoveries <span class="results-count">${stocks.length}</span></div><div class="results-meta">Scanned ${scanned} stocks • ${new Date().toLocaleString()}</div></div>`;
-
-            stocks.forEach((s, i) => {
-                const cats = getCatalysts(s);
-                html += `
-                <div class="stock-card ${s.signal.cls}">
-                    <div class="card-main">
-                        <div class="rank-section">
-                            <div class="rank-badge">#${i + 1}</div>
-                            <div class="rank-score">Score: ${s.score}</div>
-                        </div>
-                        <div class="stock-main-info">
-                            <div class="stock-header">
-                                <span class="stock-symbol">${s.symbol}</span>
-                                <span class="stock-name">${s.name}</span>
-                            </div>
-                            <div class="stock-tags">
-                                <span class="tag sector">${s.sector}</span>
-                                <span class="tag exchange">${s.exchange || 'NASDAQ'}</span>
-                                ${cats.slice(0, 2).map(c => `<span class="tag catalyst">${c.n}</span>`).join('')}
-                            </div>
-                        </div>
-                        <div class="price-action">
-                            <div class="current-price">$${s.price.toFixed(2)}</div>
-                            <div class="price-change ${s.change >= 0 ? 'positive' : 'negative'}">${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}%</div>
-                            <div class="volume-info">Range: $${s.low.toFixed(2)} - $${s.high.toFixed(2)}</div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="data-sections">
-                            <div class="data-section">
-                                <div class="section-title">📊 Trading Signal</div>
-                                <div class="trading-signal">
-                                    <div class="signal-label">Recommendation</div>
-                                    <div class="signal-action ${s.signal.cls}">${s.signal.action}</div>
-                                    <div class="price-targets">
-                                        <div class="target-box"><div class="target-label">Entry</div><div class="target-value entry">$${s.targets.entry.toFixed(2)}</div></div>
-                                        <div class="target-box"><div class="target-label">Target</div><div class="target-value target">$${s.targets.target.toFixed(2)}</div></div>
-                                        <div class="target-box"><div class="target-label">Stop Loss</div><div class="target-value stop">$${s.targets.stop.toFixed(2)}</div></div>
-                                    </div>
-                                    <div class="potential-gain"><div class="potential-label">Potential Gain</div><div class="potential-value">+${s.targets.gain.toFixed(0)}%</div></div>
-                                </div>
-                                <div class="broker-section">
-                                    <div class="broker-title">Where to Buy:</div>
-                                    <div class="broker-list">
-                                        <span class="broker-badge">Robinhood</span>
-                                        <span class="broker-badge">Webull</span>
-                                        <span class="broker-badge">TD Ameritrade</span>
-                                        <span class="broker-badge">Fidelity</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="data-section">
-                                <div class="section-title">📈 Key Metrics</div>
-                                <div class="metrics-grid">
-                                    <div class="metric-item"><div class="metric-label">Market Cap</div><div class="metric-value">${fmtCap(s.marketCap)}</div></div>
-                                    <div class="metric-item"><div class="metric-label">Day Change</div><div class="metric-value ${s.change >= 0 ? 'positive' : 'negative'}">${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}%</div></div>
-                                    <div class="metric-item"><div class="metric-label">Day High</div><div class="metric-value">$${s.high.toFixed(2)}</div></div>
-                                    <div class="metric-item"><div class="metric-label">Day Low</div><div class="metric-value">$${s.low.toFixed(2)}</div></div>
-                                    <div class="metric-item"><div class="metric-label">Open</div><div class="metric-value">$${s.open.toFixed(2)}</div></div>
-                                    <div class="metric-item"><div class="metric-label">Prev Close</div><div class="metric-value">$${s.prevClose.toFixed(2)}</div></div>
-                                    <div class="metric-item"><div class="metric-label">Volatility</div><div class="metric-value">${(((s.high - s.low) / s.price) * 100).toFixed(1)}%</div></div>
-                                    <div class="metric-item"><div class="metric-label">Risk/Reward</div><div class="metric-value">${s.targets.rr}:1</div></div>
-                                </div>
-                            </div>
-                            <div class="data-section">
-                                <div class="section-title">🎯 Catalysts</div>
-                                <div class="catalyst-list">
-                                    ${cats.length > 0 ? cats.map(c => `
-                                        <div class="catalyst-item">
-                                            <div class="catalyst-icon ${c.t}">${c.i}</div>
-                                            <div class="catalyst-content"><div class="catalyst-title">${c.n}</div><div class="catalyst-desc">${c.d}</div></div>
-                                        </div>
-                                    `).join('') : '<div class="catalyst-item"><div class="catalyst-desc">No strong catalysts</div></div>'}
-                                </div>
-                            </div>
-                            <div class="data-section">
-                                <div class="section-title">📰 News</div>
-                                <div class="news-list">
-                                    ${s.news.length > 0 ? s.news.slice(0, 3).map(n => {
-                                        const sent = sentiment(n.headline);
-                                        return `<div class="news-item"><a href="${n.url}" target="_blank">${n.headline}</a><div class="news-meta"><span>${n.source} • ${timeAgo(n.datetime)}</span><span class="news-sentiment ${sent}">${sent.toUpperCase()}</span></div></div>`;
-                                    }).join('') : '<div class="news-item"><span style="color:var(--text-muted)">No recent news</span></div>'}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="analysis-summary">
-                            <div class="analysis-title">🤖 AI Analysis</div>
-                            <div class="analysis-text">${analysis(s)}</div>
-                        </div>
-                    </div>
-                </div>`;
-            });
-
-            area.innerHTML = html;
-        }
-
-        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-    </script>
+        <p class="muted" style="margin-top:12px;">6. Confidence Level</p>
+        <p class="${result.confidence === 'High' ? 'success' : 'warn'}"><strong>${result.confidence}</strong></p>
+      `;
+    }
+  </script>
 </body>
 </html>
